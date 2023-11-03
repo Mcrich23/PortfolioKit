@@ -19,12 +19,13 @@ To configure PortfolioKit, run `PortfolioKit.shared.config(with: url)` where url
 Json files must follow this example:
 ```
 [
-{
-    "name": "Pickt",
-    "icon_url":"https://static.wixstatic.com/media/193764_6b21a958b29a4b4db9daacb1406e71a8~m.png/v1/fill/w_382,h_382,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/pickt.png",
-    "url": "https://apps.apple.com/us/app/pickt/id1584491007",
-    "url_button_name": "Get"
-}
+    {
+        "name": "Safari",
+        "icon_url""https://is1-ssl.mzstat   .com/image/thumb/Purple126/v4/f8/76/09/f876095c-4f99-f138-d380-0420e21c3c89/AppIcon-0-0-1x_U007emarketing-0-0-10-0-0    -sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/540x540bb.jpg",
+        "url": "https://apps.apple.com/us/app/safari/id1146562112",
+        "url_button_name": "Get",
+        "bundle_id": "com.apple.mobilesafari"
+    }
 ]
 ```
 

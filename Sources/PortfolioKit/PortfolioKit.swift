@@ -19,10 +19,11 @@ public class PortfolioKit: ObservableObject {
      ```
      [
        {
-         "name": "Pickt",
-         "icon_url": "https://static.wixstatic.com/media/193764_6b21a958b29a4b4db9daacb1406e71a8~mv2.png/v1/fill/w_382,h_382,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/pickt.png",
-         "url": "https://apps.apple.com/us/app/pickt/id1584491007",
-         "url_button_name": "Get"
+         "name": "Safari",
+         "icon_url": "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/f8/76/09/f876095c-4f99-f138-d380-0420e21c3c89/AppIcon-0-0-1x_U007emarketing-0-0-0-10-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/540x540bb.jpg",
+         "url": "https://apps.apple.com/us/app/safari/id1146562112",
+         "url_button_name": "Get",
+         "bundle_id": "com.apple.mobilesafari"
        }
      ]
      ```
@@ -33,7 +34,7 @@ public class PortfolioKit: ObservableObject {
      ```
      
      */
-    public func config(with url: URL) {
+    public func config(with url: URL, showCurrentApp: Bool = false) {
         self.portfolios.removeAll()
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             if let error = error {
@@ -45,11 +46,11 @@ public class PortfolioKit: ObservableObject {
                     jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
                     let rawPortfolios = try jsonDecoder.decode([PortfolioResponse].self, from: data)
                     for portfolio in rawPortfolios {
-                        if let imageUrl = URL(string: portfolio.iconUrl), let url = URL(string: portfolio.url) {
+                        if let imageUrl = URL(string: portfolio.iconUrl), let url = URL(string: portfolio.url), let bundleID = Bundle.main.bundleIdentifier, (portfolio.bundleId ?? "" != bundleID || showCurrentApp) {
                             self.downloadImage(from: imageUrl) { image in
                                 if let image {
                                     DispatchQueue.main.async {
-                                        self.portfolios.append(Portfolio(name: portfolio.name, image: image, url: url, urlButtonName: portfolio.urlButtonName))
+                                        self.portfolios.append(Portfolio(name: portfolio.name, image: image, url: url, urlButtonName: portfolio.urlButtonName, bundleID: portfolio.bundleId))
                                     }
                                 }
                             }
