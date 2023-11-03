@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 
+/// The raw response data from the portfolio json
 struct PortfolioResponse: Codable {
     let name: String
     let iconUrl: String

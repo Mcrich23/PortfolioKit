@@ -8,6 +8,23 @@
 import Foundation
 import SwiftUI
 
+/**
+ The default view to display portfolio data.
+ 
+ # Notes: #
+ 1. Use the `.title(_:)` modifier to add a navigation view and title to PortfolioView.
+ 
+ # Example #
+ ```
+ struct ContentView: View {
+   var body: some View {
+       PortfolioView()
+           .title("Check Out My Apps") // Add a navigation title to the view
+   }
+ }
+ ```
+ 
+ */
 public struct PortfolioView: View {
     @ObservedObject var portfolioKit = PortfolioKit.shared
     let backgroundColor: Color
@@ -35,6 +52,12 @@ public struct PortfolioView: View {
         }
     }
     
+    /**
+     Add a navigation view and title to PortfolioView.
+     
+     - parameter title: The desired navigation title.
+     - returns: `some View`
+     */
     public func title(_ title: String) -> some View {
         PortfolioView().modifier(NavigationModifier(title: title))
     }
