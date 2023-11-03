@@ -12,6 +12,7 @@ public class PortfolioKit: ObservableObject {
      Configure PortfolioKit and fetch all of your specified data.
      
      - parameter url: The url location for the json file to pull.
+     - parameter showCurrentApp: Tell PortfolioKit if you want to show the current app that is displaying this information.
      
      
      # Notes: #
