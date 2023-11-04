@@ -35,18 +35,23 @@ public struct PortfolioView: View {
     
     public var body: some View {
         List {
-            ForEach(portfolioKit.portfolios) { portfolio in
-                HStack {
-                    Image(uiImage: portfolio.image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 50, height: 50)
-                    Text(portfolio.name)
-                    Spacer()
-                    Link(portfolio.urlButtonName, destination: portfolio.url)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 3)
-                        .background(Capsule().fill(backgroundColor))
+            if portfolioKit.portfolios.isEmpty {
+                ProgressView()
+            } else {
+                ForEach(portfolioKit.portfolios) { portfolio in
+                    HStack {
+                        Image(uiImage: portfolio.image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 50, height: 50)
+                        Text(portfolio.name)
+                        Spacer()
+                        Link(portfolio.urlButtonName, destination: portfolio.url)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 3)
+                            .background(Capsule().fill(backgroundColor))
+                            .font(.body.bold())
+                    }
                 }
             }
         }
