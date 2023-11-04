@@ -1,12 +1,20 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
 import Foundation
+import SwiftUI
 import UIKit
 
 public class PortfolioKit: ObservableObject {
     public static let shared = PortfolioKit()
     @Published public private(set) var portfolios: [Portfolio] = []
     
+    func setPortfolios(_ portfolios: [Portfolio]) {
+        for portfolio in portfolios {
+            if let index = self.portfolios.firstIndex(where: { $0.id == portfolio.id }) {
+                self.portfolios[index] = portfolio
+            }
+        }
+    }
     
     /**
      Configure PortfolioKit and fetch all of your specified data.

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import StoreKit
 
 /**
  The default view to display portfolio data.
@@ -38,7 +39,11 @@ public struct PortfolioView: View {
             if portfolioKit.portfolios.isEmpty {
                 ProgressView()
             } else {
-                ForEach(portfolioKit.portfolios) { portfolio in
+                ForEach(Binding(get: {
+                    portfolioKit.portfolios
+                }, set: { newValue in
+                    portfolioKit.setPortfolios(newValue)
+                })) { $portfolio in
                     HStack {
                         Image(uiImage: portfolio.image)
                             .resizable()
@@ -46,11 +51,30 @@ public struct PortfolioView: View {
                             .frame(width: 50, height: 50)
                         Text(portfolio.name)
                         Spacer()
-                        Link(portfolio.urlButtonName, destination: portfolio.url)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 3)
-                            .background(Capsule().fill(backgroundColor))
-                            .font(.body.bold())
+                        if portfolio.urlIsAppStore() {
+                            Button(portfolio.urlButtonName) {
+                                if let storekitProduct = portfolio.storekitProduct {
+                                    topVC().present(storekitProduct, animated: true, completion: nil)
+                                }
+                            }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 3)
+                                .background(Capsule().fill(backgroundColor))
+                                .font(.body.bold())
+                                .onAppear {
+                                    loadProduct(portfolio) { product in
+                                        if let product {
+                                            portfolio.storekitProduct = product
+                                        }
+                                    }
+                                }
+                        } else {
+                            Link(portfolio.urlButtonName, destination: portfolio.url)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 3)
+                                .background(Capsule().fill(backgroundColor))
+                                .font(.body.bold())
+                        }
                     }
                 }
             }
@@ -65,6 +89,43 @@ public struct PortfolioView: View {
      */
     public func title(_ title: String) -> some View {
         PortfolioView().modifier(NavigationModifier(title: title))
+    }
+    
+    /**
+     Load the SKProduct to show the app store listing in app
+     
+     - parameter portfolio: The portfolio to load.
+     - parameter completion: Handle the loaded product.
+     
+     */
+    private func loadProduct(_ portfolio: Portfolio, completion: @escaping (SKStoreProductViewController?) -> Void) {
+        let productViewController = SKStoreProductViewController()
+        if let appStoreId = portfolio.appStoreId {
+            productViewController.loadProduct(withParameters: [SKStoreProductParameterITunesItemIdentifier: appStoreId]) { (success, error) in
+                if success {
+                    // Present the product view controller modally
+                    completion(productViewController)
+                } else {
+                    // Handle the error, if any
+                    if let error = error {
+                        print("Error loading App Store product: \(error.localizedDescription)")
+                    }
+                    completion(nil)
+                }
+            }
+        }
+    }
+    
+    private func topVC() -> UIViewController {
+        guard var topVC = UIApplication.shared.connectedScenes.map({ $0 as? UIWindowScene }).compactMap({ $0 }).first?.windows.first?.rootViewController else {
+            return (UIApplication.shared.connectedScenes.map({ $0 as? UIWindowScene }).compactMap({ $0 }).first?.windows.first?.rootViewController)!
+        }
+        // iterate til we find the topmost presented view controller
+        // if you don't you'll get an error since you can't present 2 vcs from the same level
+        while let presentedVC = topVC.presentedViewController {
+            topVC = presentedVC
+        }
+        return topVC
     }
 }
 
