@@ -6,8 +6,24 @@
 //
 
 import Foundation
+
+#if canImport(UIKit)
 import UIKit
+#endif
+
+#if canImport(AppKit)
+import AppKit
+#endif
+
 import StoreKit
+
+#if canImport(UIKit)
+    public typealias PortfolioImage = UIImage
+#endif
+
+#if canImport(AppKit)
+    public typealias PortfolioImage = NSImage
+#endif
 
 /// The raw response data from the portfolio json
 struct PortfolioResponse: Codable {
@@ -21,7 +37,7 @@ struct PortfolioResponse: Codable {
 public struct Portfolio: Identifiable {
     public let id = UUID()
     public let name: String
-    public let image: UIImage
+    public let image: PortfolioImage
     public let url: URL
     public let urlButtonName: String
     public let bundleID: String?
@@ -38,10 +54,20 @@ public struct Portfolio: Identifiable {
     /// If the url is an app store app
     public var urlIsAppStore: Bool {
         let appStoreHost = "apps.apple.com"
+        #if os(macOS)
+        if #available(macOS 13, *) {
+            return url.host() == appStoreHost
+        } else {
+            return url.host == appStoreHost
+        }
+        #elseif os(iOS)
         if #available(iOS 16, *) {
             return url.host() == appStoreHost
         } else {
             return url.host == appStoreHost
         }
+        #else
+        return url.host == appStoreHost
+        #endif
     }
 }

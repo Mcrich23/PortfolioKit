@@ -29,9 +29,38 @@ import StoreKit
 public struct PortfolioView: View {
     @ObservedObject var portfolioKit = PortfolioKit.shared
     let backgroundColor: Color
+    
     public init() {
         let redGreenBlue: Double = 242/255
         self.backgroundColor = Color(red: redGreenBlue, green: redGreenBlue, blue: redGreenBlue)
+    }
+    
+    func image(_ portfolio: Portfolio) -> some View {
+#if canImport(UIKit)
+        return (Image(uiImage: portfolio.image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 50, height: 50))
+#endif
+                        
+#if canImport(AppKit)
+        return (Image(nsImage: portfolio.image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 50, height: 50))
+#endif
+    }
+    
+    func presentStoreKitProduct(_ portfolio: Portfolio) {
+        if let storekitProduct = portfolio.storekitProduct {
+            self.presentVC(storekitProduct)
+        } else {
+            portfolioKit.loadProduct(portfolio) { storekitProduct in
+                if let storekitProduct {
+                    self.presentVC(storekitProduct)
+                }
+            }
+        }
     }
     
     public var body: some View {
@@ -41,23 +70,12 @@ public struct PortfolioView: View {
             } else {
                 ForEach(portfolioKit.portfolios) { portfolio in
                     HStack {
-                        Image(uiImage: portfolio.image)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 50, height: 50)
+                        image(portfolio)
                         Text(portfolio.name)
                         Spacer()
                         if portfolio.urlIsAppStore && portfolioKit.builtInStorekitEnabled {
                             Button(portfolio.urlButtonName) {
-                                if let storekitProduct = portfolio.storekitProduct {
-                                    topVC().present(storekitProduct, animated: true, completion: nil)
-                                } else {
-                                    portfolioKit.loadProduct(portfolio) { storekitProduct in
-                                        if let storekitProduct {
-                                            topVC().present(storekitProduct, animated: true, completion: nil)
-                                        }
-                                    }
-                                }
+                                self.presentStoreKitProduct(portfolio)
                             }
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 3)
@@ -86,6 +104,7 @@ public struct PortfolioView: View {
         PortfolioView().modifier(NavigationModifier(title: title))
     }
     
+#if canImport(UIKit)
     private func topVC() -> UIViewController {
         guard var topVC = UIApplication.shared.connectedScenes.map({ $0 as? UIWindowScene }).compactMap({ $0 }).first?.windows.first?.rootViewController else {
             return (UIApplication.shared.connectedScenes.map({ $0 as? UIWindowScene }).compactMap({ $0 }).first?.windows.first?.rootViewController)!
@@ -97,13 +116,39 @@ public struct PortfolioView: View {
         }
         return topVC
     }
+    private func presentVC(_ viewController: UIViewController) {
+        topVC()?.present(storekitProduct, animated: true, completion: nil)
+    }
+#endif
+
+#if canImport(AppKit)
+    private func topVC() -> NSViewController? {
+        guard let topWindow = NSApplication.shared.windows.first(where: { $0.isMainWindow }) else {
+            return nil
+        }
+        
+        var topVC = topWindow.contentViewController
+        
+        // Iterate until we find the topmost presented view controller
+        // If you don't, you might get an error when presenting multiple VCs at the same level
+        while let presentedVC = topVC?.presentedViewControllers?.first {
+            topVC = presentedVC
+        }
+        
+        return topVC
+    }
+    private func presentVC(_ viewController: NSViewController) {
+        topVC()?.presentAsSheet(viewController)
+    }
+#endif
 }
 
 struct NavigationModifier: ViewModifier {
   let title: String
 
   func body(content: Content) -> some View {
-      if #available(iOS 16.0, *) {
+      #if os(macOS)
+      if #available(macOS 13, *) {
           NavigationStack {
               content
                   .navigationTitle(title)
@@ -114,5 +159,23 @@ struct NavigationModifier: ViewModifier {
                   .navigationTitle(title)
           }
       }
+      #elseif os(iOS)
+      if #available(iOS 16, *) {
+          NavigationStack {
+              content
+                  .navigationTitle(title)
+          }
+      } else {
+          NavigationView {
+              content
+                  .navigationTitle(title)
+          }
+      }
+      #else
+      NavigationView {
+          content
+              .navigationTitle(title)
+      }
+      #endif
   }
 }

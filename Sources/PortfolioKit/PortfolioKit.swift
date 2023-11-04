@@ -2,17 +2,24 @@
 // https://docs.swift.org/swift-book
 import Foundation
 import SwiftUI
+
+#if canImport(UIKit)
 import UIKit
+#endif
+
+#if canImport(AppKit)
+import AppKit
+#endif
+
 import StoreKit
 
 public class PortfolioKit: ObservableObject {
     var builtInStorekitEnabled: Bool {
-        if ProcessInfo.processInfo.isiOSAppOnMac || ProcessInfo.processInfo.isMacCatalystApp {
-            return false
-        } else {
-            let allowedInterfaces: [UIUserInterfaceIdiom] = [.phone, .pad]
-            return allowedInterfaces.contains(UIDevice.current.userInterfaceIdiom)
-        }
+        #if os(macOS)
+        return false
+        #else
+        (ProcessInfo.processInfo.isiOSAppOnMac || ProcessInfo.processInfo.isMacCatalystApp)
+        #endif
     }
     public static let shared = PortfolioKit()
     @Published public private(set) var portfolios: [Portfolio] = []
@@ -107,14 +114,14 @@ public class PortfolioKit: ObservableObject {
         }
     }
     
-    private func downloadImage(from url: URL, completion: @escaping (UIImage?) -> Void) {
+    private func downloadImage(from url: URL, completion: @escaping (PortfolioImage?) -> Void) {
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data, error == nil else {
                 completion(nil)
                 return
             }
             
-            let image = UIImage(data: data)
+            let image = PortfolioImage(data: data)
             completion(image)
         }.resume()
     }
