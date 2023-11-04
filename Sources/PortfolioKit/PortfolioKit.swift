@@ -3,18 +3,11 @@
 import Foundation
 import SwiftUI
 import UIKit
+import StoreKit
 
 public class PortfolioKit: ObservableObject {
     public static let shared = PortfolioKit()
     @Published public private(set) var portfolios: [Portfolio] = []
-    
-    func setPortfolios(_ portfolios: [Portfolio]) {
-        for portfolio in portfolios {
-            if let index = self.portfolios.firstIndex(where: { $0.id == portfolio.id }) {
-                self.portfolios[index] = portfolio
-            }
-        }
-    }
     
     /**
      Configure PortfolioKit and fetch all of your specified data.
@@ -62,13 +55,45 @@ public class PortfolioKit: ObservableObject {
                 self.downloadImage(from: imageUrl) { image in
                     if let image {
                         DispatchQueue.main.async {
-                            self.portfolios.append(Portfolio(name: portfolio.name, image: image, url: url, urlButtonName: portfolio.urlButtonName, bundleID: portfolio.bundleId))
+                            var newPortfolio = Portfolio(name: portfolio.name, image: image, url: url, urlButtonName: portfolio.urlButtonName, bundleID: portfolio.bundleId)
+                            self.loadProduct(newPortfolio) { productViewController in
+                                newPortfolio.storekitProduct = productViewController
+                                self.portfolios.append(newPortfolio)
+                            }
+                            
                         }
                     }
                 }
             }
         }
         print("Done")
+    }
+    
+    /**
+     Load the SKProduct to show the app store listing in app
+     
+     - parameter portfolio: The portfolio to load.
+     - parameter completion: Handle the loaded product.
+     
+     */
+    public func loadProduct(_ portfolio: Portfolio, completion: @escaping (SKStoreProductViewController?) -> Void) {
+        let productViewController = SKStoreProductViewController()
+        guard let appStoreId = portfolio.appStoreId else {
+            completion(nil)
+            return
+        }
+        productViewController.loadProduct(withParameters: [SKStoreProductParameterITunesItemIdentifier: appStoreId]) { (success, error) in
+            if success {
+                // Present the product view controller modally
+                completion(productViewController)
+            } else {
+                // Handle the error, if any
+                if let error = error {
+                    print("Error loading App Store product: \(error.localizedDescription)")
+                }
+                completion(nil)
+            }
+        }
     }
     
     private func downloadImage(from url: URL, completion: @escaping (UIImage?) -> Void) {

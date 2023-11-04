@@ -39,11 +39,7 @@ public struct PortfolioView: View {
             if portfolioKit.portfolios.isEmpty {
                 ProgressView()
             } else {
-                ForEach(Binding(get: {
-                    portfolioKit.portfolios
-                }, set: { newValue in
-                    portfolioKit.setPortfolios(newValue)
-                })) { $portfolio in
+                ForEach(portfolioKit.portfolios) { portfolio in
                     HStack {
                         Image(uiImage: portfolio.image)
                             .resizable()
@@ -51,23 +47,22 @@ public struct PortfolioView: View {
                             .frame(width: 50, height: 50)
                         Text(portfolio.name)
                         Spacer()
-                        if portfolio.urlIsAppStore() {
+                        if portfolio.urlIsAppStore {
                             Button(portfolio.urlButtonName) {
                                 if let storekitProduct = portfolio.storekitProduct {
                                     topVC().present(storekitProduct, animated: true, completion: nil)
+                                } else {
+                                    portfolioKit.loadProduct(portfolio) { storekitProduct in
+                                        if let storekitProduct {
+                                            topVC().present(storekitProduct, animated: true, completion: nil)
+                                        }
+                                    }
                                 }
                             }
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 3)
                                 .background(Capsule().fill(backgroundColor))
                                 .font(.body.bold())
-                                .onAppear {
-                                    loadProduct(portfolio) { product in
-                                        if let product {
-                                            portfolio.storekitProduct = product
-                                        }
-                                    }
-                                }
                         } else {
                             Link(portfolio.urlButtonName, destination: portfolio.url)
                                 .padding(.horizontal, 20)
@@ -89,31 +84,6 @@ public struct PortfolioView: View {
      */
     public func title(_ title: String) -> some View {
         PortfolioView().modifier(NavigationModifier(title: title))
-    }
-    
-    /**
-     Load the SKProduct to show the app store listing in app
-     
-     - parameter portfolio: The portfolio to load.
-     - parameter completion: Handle the loaded product.
-     
-     */
-    private func loadProduct(_ portfolio: Portfolio, completion: @escaping (SKStoreProductViewController?) -> Void) {
-        let productViewController = SKStoreProductViewController()
-        if let appStoreId = portfolio.appStoreId {
-            productViewController.loadProduct(withParameters: [SKStoreProductParameterITunesItemIdentifier: appStoreId]) { (success, error) in
-                if success {
-                    // Present the product view controller modally
-                    completion(productViewController)
-                } else {
-                    // Handle the error, if any
-                    if let error = error {
-                        print("Error loading App Store product: \(error.localizedDescription)")
-                    }
-                    completion(nil)
-                }
-            }
-        }
     }
     
     private func topVC() -> UIViewController {

@@ -28,13 +28,15 @@ public struct Portfolio: Identifiable {
     
     var storekitProduct: SKStoreProductViewController?
     
+    /// The app store element id if available
     public var appStoreId: String? {
-        guard urlIsAppStore() else { return nil }
+        guard urlIsAppStore else { return nil }
         
         return self.url.lastPathComponent.replacingOccurrences(of: "id", with: "")
     }
     
-    public func urlIsAppStore() -> Bool {
+    /// If the url is an app store app
+    public var urlIsAppStore: Bool {
         if #available(iOS 16, *) {
             if url.host() == "apps.apple.com" {
                 return true
