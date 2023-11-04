@@ -47,7 +47,7 @@ public struct PortfolioView: View {
                             .frame(width: 50, height: 50)
                         Text(portfolio.name)
                         Spacer()
-                        if portfolio.urlIsAppStore {
+                        if portfolio.urlIsAppStore && portfolioKit.builtInStorekitEnabled {
                             Button(portfolio.urlButtonName) {
                                 if let storekitProduct = portfolio.storekitProduct {
                                     topVC().present(storekitProduct, animated: true, completion: nil)

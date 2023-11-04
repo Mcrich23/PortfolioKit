@@ -6,6 +6,14 @@ import UIKit
 import StoreKit
 
 public class PortfolioKit: ObservableObject {
+    var builtInStorekitEnabled: Bool {
+        if ProcessInfo.processInfo.isiOSAppOnMac || ProcessInfo.processInfo.isMacCatalystApp {
+            return false
+        } else {
+            let allowedInterfaces: [UIUserInterfaceIdiom] = [.phone, .pad]
+            return allowedInterfaces.contains(UIDevice.current.userInterfaceIdiom)
+        }
+    }
     public static let shared = PortfolioKit()
     @Published public private(set) var portfolios: [Portfolio] = []
     
@@ -56,9 +64,12 @@ public class PortfolioKit: ObservableObject {
                     if let image {
                         DispatchQueue.main.async {
                             var newPortfolio = Portfolio(name: portfolio.name, image: image, url: url, urlButtonName: portfolio.urlButtonName, bundleID: portfolio.bundleId)
+                            self.portfolios.append(newPortfolio)
+                            
                             self.loadProduct(newPortfolio) { productViewController in
-                                newPortfolio.storekitProduct = productViewController
-                                self.portfolios.append(newPortfolio)
+                                if let index = self.portfolios.firstIndex(where: { $0.bundleID == newPortfolio.bundleID }) {
+                                    self.portfolios[index].storekitProduct = productViewController
+                                }
                             }
                             
                         }
@@ -78,7 +89,7 @@ public class PortfolioKit: ObservableObject {
      */
     public func loadProduct(_ portfolio: Portfolio, completion: @escaping (SKStoreProductViewController?) -> Void) {
         let productViewController = SKStoreProductViewController()
-        guard let appStoreId = portfolio.appStoreId else {
+        guard let appStoreId = portfolio.appStoreId, self.builtInStorekitEnabled else {
             completion(nil)
             return
         }
