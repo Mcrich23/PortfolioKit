@@ -37,18 +37,11 @@ public struct Portfolio: Identifiable {
     
     /// If the url is an app store app
     public var urlIsAppStore: Bool {
+        let appStoreHost = "apps.apple.com"
         if #available(iOS 16, *) {
-            if url.host() == "apps.apple.com" {
-                return true
-            } else {
-                return false
-            }
+            return url.host() == appStoreHost
         } else {
-            if url.host == "apps.apple.com" {
-                return true
-            } else {
-                return false
-            }
+            return url.host == appStoreHost
         }
     }
 }
