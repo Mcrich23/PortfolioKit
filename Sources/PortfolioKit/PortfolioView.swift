@@ -9,6 +9,10 @@ import Foundation
 import SwiftUI
 import StoreKit
 
+#if canImport(SafariServices)
+import SafariServices
+#endif
+
 /**
  The default view to display portfolio data.
  
@@ -43,7 +47,7 @@ public struct PortfolioView: View {
                             .frame(width: 50, height: 50))
 #endif
                         
-#if canImport(AppKit)
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
         return (Image(nsImage: portfolio.image)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
@@ -52,6 +56,7 @@ public struct PortfolioView: View {
     }
     
     func presentStoreKitProduct(_ portfolio: Portfolio) {
+        #if os(iOS)
         if let storekitProduct = portfolio.storekitProduct {
             self.presentVC(storekitProduct)
         } else {
@@ -61,6 +66,20 @@ public struct PortfolioView: View {
                 }
             }
         }
+        #elseif os(macOS)
+        NSWorkspace.shared.open(portfolio.url)
+        #elseif canImport(SafariServices)
+        let safariVC = SFSafariViewController(url: portfolio.url)
+        presentVC(safariVC)
+        #elseif canImport(UIKit)
+            #if os(tvOS)
+            if let url = URL(string: "com.apple.TVAppStore://\(portfolio.url.absoluteString)") {
+                UIApplication.shared.open(url)
+            }
+            #else
+            UIApplication.shared.open(portfolio.url)
+            #endif
+        #endif
     }
     
     public var body: some View {
@@ -77,10 +96,14 @@ public struct PortfolioView: View {
                             Button(portfolio.urlButtonName) {
                                 self.presentStoreKitProduct(portfolio)
                             }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 3)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 3)
+                            .font(.body.bold())
+                            #if os(tvOS)
+                                .buttonStyle(PlainButtonStyle())
+                            #else
                                 .background(Capsule().fill(backgroundColor))
-                                .font(.body.bold())
+                            #endif
                         } else {
                             Link(portfolio.urlButtonName, destination: portfolio.url)
                                 .padding(.horizontal, 20)
@@ -117,11 +140,11 @@ public struct PortfolioView: View {
         return topVC
     }
     private func presentVC(_ viewController: UIViewController) {
-        topVC()?.present(storekitProduct, animated: true, completion: nil)
+        topVC().present(viewController, animated: true, completion: nil)
     }
 #endif
 
-#if canImport(AppKit)
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
     private func topVC() -> NSViewController? {
         guard let topWindow = NSApplication.shared.windows.first(where: { $0.isMainWindow }) else {
             return nil

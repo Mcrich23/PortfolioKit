@@ -3,11 +3,15 @@
 import Foundation
 import SwiftUI
 
+#if canImport(TVUIKit)
+import TVUIKit
+#endif
+
 #if canImport(UIKit)
 import UIKit
 #endif
 
-#if canImport(AppKit)
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
 import AppKit
 #endif
 
@@ -18,7 +22,7 @@ public class PortfolioKit: ObservableObject {
         #if os(macOS)
         return false
         #else
-        (ProcessInfo.processInfo.isiOSAppOnMac || ProcessInfo.processInfo.isMacCatalystApp)
+        !(ProcessInfo.processInfo.isiOSAppOnMac || ProcessInfo.processInfo.isMacCatalystApp)
         #endif
     }
     public static let shared = PortfolioKit()
@@ -74,8 +78,10 @@ public class PortfolioKit: ObservableObject {
                             self.portfolios.append(newPortfolio)
                             
                             self.loadProduct(newPortfolio) { productViewController in
-                                if let index = self.portfolios.firstIndex(where: { $0.bundleID == newPortfolio.bundleID }) {
+                                if let index = self.portfolios.firstIndex(where: { $0.id == newPortfolio.id }) {
+                                    #if os(iOS)
                                     self.portfolios[index].storekitProduct = productViewController
+                                    #endif
                                 }
                             }
                             
@@ -94,6 +100,7 @@ public class PortfolioKit: ObservableObject {
      - parameter completion: Handle the loaded product.
      
      */
+    #if os(iOS)
     public func loadProduct(_ portfolio: Portfolio, completion: @escaping (SKStoreProductViewController?) -> Void) {
         let productViewController = SKStoreProductViewController()
         guard let appStoreId = portfolio.appStoreId, self.builtInStorekitEnabled else {
@@ -113,6 +120,11 @@ public class PortfolioKit: ObservableObject {
             }
         }
     }
+    #else
+    public func loadProduct(_ portfolio: Portfolio, completion: @escaping (PortfolioVC?) -> Void) {
+        completion(nil)
+    }
+    #endif
     
     private func downloadImage(from url: URL, completion: @escaping (PortfolioImage?) -> Void) {
         URLSession.shared.dataTask(with: url) { data, response, error in

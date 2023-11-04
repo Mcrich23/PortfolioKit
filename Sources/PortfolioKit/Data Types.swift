@@ -7,23 +7,25 @@
 
 import Foundation
 
-#if canImport(UIKit)
-import UIKit
+#if canImport(TVUIKit)
+import TVUIKit
+public typealias PortfolioImage = UIImage
+public typealias PortfolioVC = UIViewController
 #endif
 
-#if canImport(AppKit)
+#if canImport(UIKit) && !os(tvOS)
+import UIKit
+public typealias PortfolioImage = UIImage
+public typealias PortfolioVC = UIViewController
+#endif
+
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
 import AppKit
+public typealias PortfolioImage = NSImage
+public typealias PortfolioVC = NSViewController
 #endif
 
 import StoreKit
-
-#if canImport(UIKit)
-    public typealias PortfolioImage = UIImage
-#endif
-
-#if canImport(AppKit)
-    public typealias PortfolioImage = NSImage
-#endif
 
 /// The raw response data from the portfolio json
 struct PortfolioResponse: Codable {
@@ -42,7 +44,9 @@ public struct Portfolio: Identifiable {
     public let urlButtonName: String
     public let bundleID: String?
     
+    #if os(iOS)
     var storekitProduct: SKStoreProductViewController?
+    #endif
     
     /// The app store element id if available
     public var appStoreId: String? {
