@@ -35,35 +35,32 @@ public class PortfolioKit: ObservableObject {
      ```
      
      */
+    
     public func config(with url: URL, showCurrentApp: Bool = false) {
+        Task {
+            try await config(with: url, showCurrentApp: showCurrentApp)
+        }
+    }
+    
+    public func config(with url: URL, showCurrentApp: Bool = false) async throws {
         self.portfolios.removeAll()
-        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
-            if let error = error {
-                print("Error: \(error)")
-            } else if let data = data {
-                do {
-                    // Parse the JSON data
-                    let jsonDecoder = JSONDecoder()
-                    jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
-                    let rawPortfolios = try jsonDecoder.decode([PortfolioResponse].self, from: data)
-                    for portfolio in rawPortfolios {
-                        if let imageUrl = URL(string: portfolio.iconUrl), let url = URL(string: portfolio.url), let bundleID = Bundle.main.bundleIdentifier, (portfolio.bundleId ?? "" != bundleID || showCurrentApp) {
-                            self.downloadImage(from: imageUrl) { image in
-                                if let image {
-                                    DispatchQueue.main.async {
-                                        self.portfolios.append(Portfolio(name: portfolio.name, image: image, url: url, urlButtonName: portfolio.urlButtonName, bundleID: portfolio.bundleId))
-                                    }
-                                }
-                            }
+        let (data, _) = try await URLSession.shared.data(from: url)
+        // Parse the JSON data
+        let jsonDecoder = JSONDecoder()
+        jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
+        let rawPortfolios = try jsonDecoder.decode([PortfolioResponse].self, from: data)
+        for portfolio in rawPortfolios {
+            if let imageUrl = URL(string: portfolio.iconUrl), let url = URL(string: portfolio.url), let bundleID = Bundle.main.bundleIdentifier, (portfolio.bundleId ?? "" != bundleID || showCurrentApp) {
+                self.downloadImage(from: imageUrl) { image in
+                    if let image {
+                        DispatchQueue.main.async {
+                            self.portfolios.append(Portfolio(name: portfolio.name, image: image, url: url, urlButtonName: portfolio.urlButtonName, bundleID: portfolio.bundleId))
                         }
                     }
-                    
-                } catch {
-                    print("Error parsing JSON: \(error)")
                 }
             }
         }
-        task.resume()
+        print("Done")
     }
     
     private func downloadImage(from url: URL, completion: @escaping (UIImage?) -> Void) {
