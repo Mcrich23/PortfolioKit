@@ -15,7 +15,7 @@ The preferred way of installing PortfolioKit is via the [Swift Package Manager](
 ## Configuration
 To configure PortfolioKit, run `PortfolioKit.shared.config(with: url)` where url is the url to your json file.
 
-*Note:*
+**_Note:_**
 Json files must follow this example:
 ```
 [
@@ -36,7 +36,7 @@ There are two methods of presenting data:
 ### Method 1
 You can present the SwiftUi view `PortfolioView`, which will automatically show your configured data.
 
-*Note:*
+**_Note:_**
 You can use the `.title(_:)` modifier to add a navigation view and title to the view.
 
 ### Method 2
