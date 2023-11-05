@@ -3,7 +3,7 @@
 </p>
 <h1 align="center">PortfolioKit</h1>
 
-A SPM package to share your portfolio in your app dynamically.
+Level up your iOS App by showing the rest of your portfolio completely dynamically.
 
 ## Installation
 
