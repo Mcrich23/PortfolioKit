@@ -1,4 +1,7 @@
-# PortfolioKit
+<p align="center">
+  <img width="200" height="200" src="./Promo/PortfolioKit Icon.png">
+</p>
+<h1 align="center">PortfolioKit</h1>
 
 A SPM package to share your portfolio in your app dynamically.
 
