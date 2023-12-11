@@ -74,7 +74,7 @@ public class PortfolioKit: ObservableObject {
                 self.downloadImage(from: imageUrl) { image in
                     if let image {
                         DispatchQueue.main.async {
-                            var newPortfolio = Portfolio(name: portfolio.name, image: image, url: url, urlButtonName: portfolio.urlButtonName, bundleID: portfolio.bundleId)
+                            let newPortfolio = Portfolio(name: portfolio.name, image: image, url: url, urlButtonName: portfolio.urlButtonName, bundleID: portfolio.bundleId)
                             self.portfolios.append(newPortfolio)
                             
                             self.loadProduct(newPortfolio) { productViewController in
