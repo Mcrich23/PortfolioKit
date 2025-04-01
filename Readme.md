@@ -18,7 +18,6 @@ The preferred way of installing PortfolioKit is via the [Swift Package Manager](
 ## Configuration
 To configure PortfolioKit, run `PortfolioKit.shared.config(with: url)` where url is the url to your json file.
 
-**_Note:_**
 Json files must follow this example:
 ```
 [
